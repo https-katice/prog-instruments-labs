@@ -56,7 +56,7 @@ def validate(data: pd.DataFrame, regular_expressions: dict[str, str]) -> list:
 
 def main():
     settings = read_json("settings.json")
-    regex = read_json("regs.json")
+    regex = read_json(settings["regs"])
     df = read_csv(settings["csv_path"])
     result = validate(df, regex)
     checksum = calculate_checksum(result)
