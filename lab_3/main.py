@@ -1,9 +1,8 @@
 import csv
 import re
-import json
-import hashlib
 from datetime import datetime
 from typing import Dict, List, Tuple
+from checksum import calculate_checksum, serialize_result
 
 
 class DataValidator:
@@ -16,8 +15,10 @@ class DataValidator:
             'latitude': r'^-?\d{1,2}\.\d+$',
             'hex_color': r'^#[0-9a-fA-F]{6}$',
             'issn': r'^\d{4}-\d{4}$',
-            'uuid': r'^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-'
-                    r'[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$',
+            'uuid': (
+                r'^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-'
+                r'[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$'
+            ),
             'time': r'^\d{2}:\d{2}:\d{2}\.\d{1,6}$',
         }
         self.occupation_pattern = r'^[а-яА-ЯёЁ\s\-_]+$'
@@ -48,7 +49,7 @@ class DataValidator:
         if not re.match(
                 self.occupation_pattern,
                 occupation_clean.replace('_', '')
-        ):
+                        ):
             return False
         return True
 
@@ -165,21 +166,13 @@ def main():
     validator = DataValidator()
     invalid_rows = []
 
-    for i, row in enumerate(data, 1):
+    for i, row in enumerate(data, 0):
         _, errors = validator.validate_row(row)
         if errors:
             invalid_rows.append(i)
 
-    invalid_rows_str = ','.join(map(str, invalid_rows))
-    checksum = hashlib.sha256(invalid_rows_str.encode()).hexdigest()
-
-    result = {
-        "variant": "47",
-        "checksum": checksum
-    }
-
-    with open('result.json', 'w', encoding='utf-8') as f:
-        json.dump(result, f, indent=2)
+    checksum = calculate_checksum(invalid_rows)
+    serialize_result(47, checksum)
 
 
 if __name__ == "__main__":

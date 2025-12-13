@@ -1,10 +1,22 @@
+import json
 import hashlib
+from typing import List
 
 
-def calculate_checksum(invalid_rows: list) -> str:
-    invalid_rows_str = ','.join(map(str, invalid_rows))
-    return hashlib.sha256(invalid_rows_str.encode()).hexdigest()
+def calculate_checksum(row_numbers: List[int]) -> str:
+    row_numbers.sort()
+    return hashlib.md5(json.dumps(row_numbers).encode('utf-8')).hexdigest()
+
+
+def serialize_result(variant: int, checksum: str) -> None:
+    result = {
+        "variant": variant,
+        "checksum": checksum
+    }
+    with open('result.json', 'w', encoding='utf-8') as f:
+        json.dump(result, f, indent=2)
 
 
 if __name__ == "__main__":
-    print("main.py")
+    print(calculate_checksum([1, 2, 3]))
+    print(calculate_checksum([3, 2, 1]))
