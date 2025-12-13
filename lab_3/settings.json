@@ -1,5 +1,5 @@
 {
-  "input_file": "47.csv",
-  "delimiter": ";",
-  "output_file": "result.json"
+  "csv_path": "47.csv",
+  "result_path": "result.json",
+  "variant": 47
 }
