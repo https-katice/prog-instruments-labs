@@ -1,0 +1,5 @@
+{
+  "input_file": "47.csv",
+  "delimiter": ";",
+  "output_file": "result.json"
+}
