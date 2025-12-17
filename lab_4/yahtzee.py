@@ -83,13 +83,17 @@ class Yahtzee:
     def two_pair(d1, d2, d3, d4, d5):
         dice = [d1, d2, d3, d4, d5]
         counts = Yahtzee.make_counts(dice)
-        score = 0
-        pairs_found = 0
-        for index in range(5, -1, -1):
-            if counts[index] == 2:
-                pairs_found += 1
-                score += (index + 1) * 2
-        return score if pairs_found == 2 else 0
+
+        first_pair_val = Yahtzee.find_value_with_count(counts, 2)
+        if not first_pair_val:
+            return 0
+
+        counts[first_pair_val - 1] = 0
+        second_pair_val = Yahtzee.find_value_with_count(counts, 2)
+
+        if second_pair_val:
+            return (first_pair_val + second_pair_val) * 2
+        return 0
 
     @staticmethod
     def three_of_a_kind(d1, d2, d3, d4, d5):
