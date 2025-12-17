@@ -2,27 +2,37 @@ class Yahtzee:
 
     @staticmethod
     def chance(d1, d2, d3, d4, d5):
-        total = 0
-        total += d1
-        total += d2
-        total += d3
-        total += d4
-        total += d5
-        return total
+        dice = [d1, d2, d3, d4, d5]
+        return Yahtzee.chance_new(dice)
 
     @staticmethod
-    def yahtzee(dice):
-        counts = [0]*(len(dice)+1)
+    def chance_new(dice):
+        return sum(dice)
+
+    @staticmethod
+    def yahtzee(d1, d2, d3, d4, d5):
+        dice = [d1, d2, d3, d4, d5]
+        return Yahtzee.yahtzee_new(dice)
+
+    @staticmethod
+    def yahtzee_new(dice):
+        counts = [0] * (len(dice) + 1)
         for die in dice:
-            counts[die-1] += 1
-        for i in range(len(counts)):
-            if counts[i] == 5:
-                return 50
+            counts[die - 1] +=1
+        if 5 in counts:
+            return 50
         return 0
 
     @staticmethod
     def sum_of_dice_with_value(dice, value):
         return sum(die for die in dice if die == value)
+
+    @staticmethod
+    def make_counts(dice):
+        counts = [0] * 6
+        for die in dice:
+            counts[die - 1] += 1
+        return counts
 
     @staticmethod
     def ones( d1,  d2,  d3,  d4,  d5):
