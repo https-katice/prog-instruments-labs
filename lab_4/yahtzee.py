@@ -19,22 +19,15 @@ class Yahtzee:
             if counts[i] == 5:
                 return 50
         return 0
-    
+
+    @staticmethod
+    def sum_of_dice_with_value(dice, value):
+        return sum(die for die in dice if die == value)
+
     @staticmethod
     def ones( d1,  d2,  d3,  d4,  d5):
-        sum = 0
-        if (d1 == 1):
-            sum += 1
-        if (d2 == 1):
-            sum += 1
-        if (d3 == 1):
-            sum += 1
-        if (d4 == 1):
-            sum += 1
-        if (d5 == 1): 
-            sum += 1
-
-        return sum
+        dice = [d1, d2, d3, d4, d5]
+        return Yahtzee.sum_of_dice_with_value(dice, 1)
     
 
     @staticmethod
