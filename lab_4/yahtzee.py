@@ -43,6 +43,13 @@ class Yahtzee:
         return 0
 
     @staticmethod
+    def is_straight(counts, start_index, length):
+        for i in range(start_index, start_index + length):
+            if counts[i] < 1:
+                return False
+        return True
+
+    @staticmethod
     def number_category(dice, value):
         return Yahtzee.sum_of_dice_with_value(dice, value)
 
@@ -117,7 +124,7 @@ class Yahtzee:
     def smallStraight(d1, d2, d3, d4, d5):
         dice = [d1, d2, d3, d4, d5]
         counts = Yahtzee.make_counts(dice)
-        if all(counts[i] >= 1 for i in range(0, 5)):
+        if Yahtzee.is_straight(counts, 0, 5):
             return 15
         return 0
 
@@ -125,7 +132,7 @@ class Yahtzee:
     def largeStraight(d1, d2, d3, d4, d5):
         dice = [d1, d2, d3, d4, d5]
         counts = Yahtzee.make_counts(dice)
-        if all(counts[i] >= 1 for i in range(1, 6)):
+        if Yahtzee.is_straight(counts, 1, 5):
             return 20
         return 0
 
