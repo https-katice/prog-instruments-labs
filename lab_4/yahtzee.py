@@ -36,6 +36,13 @@ class Yahtzee:
         return counts
 
     @staticmethod
+    def find_value_with_count(counts, target_count):
+        for index, count in enumerate(counts):
+            if count == target_count:
+                return index + 1
+        return 0
+
+    @staticmethod
     def number_category(dice, value):
         return Yahtzee.sum_of_dice_with_value(dice, value)
 
@@ -123,19 +130,9 @@ class Yahtzee:
         dice = [d1, d2, d3, d4, d5]
         counts = Yahtzee.make_counts(dice)
 
-        has_pair = False
-        pair_value = 0
-        has_triple = False
-        triple_value = 0
+        pair_value = Yahtzee.find_value_with_count(counts, 2)
+        triple_value = Yahtzee.find_value_with_count(counts, 3)
 
-        for index in range(6):
-            if counts[index] == 2:
-                has_pair = True
-                pair_value = index + 1
-            elif counts[index] == 3:
-                has_triple = True
-                triple_value = index + 1
-
-        if has_pair and has_triple:
+        if pair_value and triple_value:
             return pair_value * 2 + triple_value * 3
         return 0
