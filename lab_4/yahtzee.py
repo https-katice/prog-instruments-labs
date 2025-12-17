@@ -47,30 +47,18 @@ class Yahtzee:
         self.dice[2] = d3
         self.dice[3] = d4
         self.dice[4] = _5
-    
+
+    def sum_for_number(self, value):
+        return sum(die for die in self.dice if die == value)
+
     def fours(self):
-        sum = 0
-        for at in range(5):
-            if (self.dice[at] == 4): 
-                sum += 4
-        return sum
-    
+        return self.sum_for_number(4)
 
     def fives(self):
-        s = 0
-        i = 0
-        for i in range(len(self.dice)): 
-            if (self.dice[i] == 5):
-                s = s + 5
-        return s
-    
+        return self.sum_for_number(5)
 
     def sixes(self):
-        sum = 0
-        for at in range(len(self.dice)): 
-            if (self.dice[at] == 6):
-                sum = sum + 6
-        return sum
+        return self.sum_for_number(6)
     
     @staticmethod
     def score_pair( d1,  d2,  d3,  d4,  d5):
