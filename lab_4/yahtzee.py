@@ -14,11 +14,12 @@ class Yahtzee:
         dice = [d1, d2, d3, d4, d5]
         return Yahtzee.yahtzee_new(dice)
 
+    def __init__(self, d1, d2, d3, d4, d5):
+        self.dice = [d1, d2, d3, d4, d5]
+
     @staticmethod
     def yahtzee_new(dice):
-        counts = [0] * (len(dice) + 1)
-        for die in dice:
-            counts[die - 1] +=1
+        counts = Yahtzee.make_counts(dice)
         if 5 in counts:
             return 50
         return 0
@@ -35,28 +36,20 @@ class Yahtzee:
         return counts
 
     @staticmethod
-    def ones( d1,  d2,  d3,  d4,  d5):
-        dice = [d1, d2, d3, d4, d5]
-        return Yahtzee.sum_of_dice_with_value(dice, 1)
+    def number_category(dice, value):
+        return Yahtzee.sum_of_dice_with_value(dice, value)
+
+    @staticmethod
+    def ones(d1, d2, d3, d4, d5):
+        return Yahtzee.number_category([d1, d2, d3, d4, d5], 1)
 
     @staticmethod
     def twos(d1, d2, d3, d4, d5):
-        dice = [d1, d2, d3, d4, d5]
-        return Yahtzee.sum_of_dice_with_value(dice, 2)
+        return Yahtzee.number_category([d1, d2, d3, d4, d5], 2)
 
     @staticmethod
     def threes(d1, d2, d3, d4, d5):
-        dice = [d1, d2, d3, d4, d5]
-        return Yahtzee.sum_of_dice_with_value(dice, 3)
-    
-
-    def __init__(self, d1, d2, d3, d4, _5):
-        self.dice = [0]*5
-        self.dice[0] = d1
-        self.dice[1] = d2
-        self.dice[2] = d3
-        self.dice[3] = d4
-        self.dice[4] = _5
+        return Yahtzee.number_category([d1, d2, d3, d4, d5], 3)
 
     def sum_for_number(self, value):
         return sum(die for die in self.dice if die == value)
