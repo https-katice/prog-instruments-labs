@@ -111,8 +111,6 @@ def hide_file_in_png(image_path, file_to_hide, output_image_path, public_key_pat
 
     # Read the original image
     img = Image.open(image_path)
-
-
     # Check if the image is in a mode that can be converted to RGB or RGBA
     if img.mode not in ['RGB', 'RGBA', 'P', 'L']:
         raise ValueError("Image mode must be RGB, RGBA, P (palette-based), or L (grayscale).")
@@ -181,8 +179,6 @@ def hide_file_in_png(image_path, file_to_hide, output_image_path, public_key_pat
             idx = pixel_indices[64 + i * 8 + bit]
             if (pixels[idx // pixels.shape[1], idx % pixels.shape[1], 0] & 0x1) != ((byte >> (7 - bit)) & 0x1):
                 pixels[idx // pixels.shape[1], idx % pixels.shape[1], 0] ^= 0x1
-
-
     # Check if the file already exists and prompt the user
     if os.path.exists(output_image_path):
         overwrite = input(f"The file '{output_image_path}' already exists. Overwrite? (y/n): ").lower()
@@ -207,9 +203,6 @@ def hide_file_in_png(image_path, file_to_hide, output_image_path, public_key_pat
     print(f"File '{file_to_hide}' has been successfully hidden in '{output_image_path}'.")
 
 
-
-
-
 def extract_file_from_png(image_path, output_file_path, private_key_path):
     # Load the private key
     passphrase = getpass("Enter the private key passphrase: ")
@@ -224,8 +217,6 @@ def extract_file_from_png(image_path, output_file_path, private_key_path):
     # Use the sum of the image dimensions as the seed
     seed = compute_seed_from_image_dimensions(image_path)
     prng = random.Random(seed)  # Create a new instance of a random number generator
-
-
     # Read the steganographed image
     img = Image.open(image_path)
     if img.mode not in ['RGB', 'RGBA']:
@@ -315,8 +306,6 @@ def main():
     hide_parser.add_argument('secret', type=str, help='Path to the secret file to hide')
     hide_parser.add_argument('pubkey', type=str, help='Path to the public key for encryption')
     hide_parser.add_argument('output', type=str, help='Path to the output image with embedded data')
-
-
     # Subparser for extracting a file
     extract_parser = subparsers.add_parser('extract', help='Extract a file from an image', epilog="Example: python secret_pixel.py extract carrier.png  myprivatekey.pem [extracted.txt]",
                                            formatter_class=argparse.RawDescriptionHelpFormatter)
@@ -324,9 +313,6 @@ def main():
     extract_parser.add_argument('privkey', type=str, help='Path to the private key for decryption')
 
     extract_parser.add_argument('extracted', nargs='?', type=str, default=None, help='Path to save the extracted secret file (optional, defaults to the original filename)')
-
-
-
     if len(sys.argv) == 1:
         parser.print_help(sys.stderr)
         sys.exit(1)
