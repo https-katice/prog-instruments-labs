@@ -1,18 +1,19 @@
 import argparse
-import sys
 import os
 import random
-from PIL import Image
-import numpy as np
-from cryptography.hazmat.primitives.padding import PKCS7
-from cryptography.hazmat.primitives import serialization
-from cryptography.hazmat.primitives.asymmetric import padding
-from cryptography.hazmat.primitives import hashes
-from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
-from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
-from cryptography.hazmat.backends import default_backend
+import sys
 import zlib
 from getpass import getpass
+
+import numpy as np
+from cryptography.hazmat.backends import default_backend
+from cryptography.hazmat.primitives import hashes, serialization
+from cryptography.hazmat.primitives.asymmetric import padding
+from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
+from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
+from cryptography.hazmat.primitives.padding import PKCS7
+from PIL import Image
+
 
 """
 This program is free software: you can redistribute it and/or modify
