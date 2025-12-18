@@ -30,6 +30,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
+
 def encrypt_data(data, public_key):
     # Generate a random session key
     session_key = os.urandom(32)  # 32 bytes for 256-bit key
@@ -61,6 +62,7 @@ def encrypt_data(data, public_key):
     )
     return encrypted_session_key, salt, iv, encrypted_data
 
+
 def decrypt_data(encrypted_session_key, salt, iv, encrypted_data, private_key):
     # Decrypt the session key with RSA
     session_key = private_key.decrypt(
@@ -88,10 +90,12 @@ def decrypt_data(encrypted_session_key, salt, iv, encrypted_data, private_key):
     decrypted_data = unpadder.update(decrypted_padded_data) + unpadder.finalize()
     return decrypted_data
 
+
 def compute_seed_from_image_dimensions(image_path):
     with Image.open(image_path) as img:
         width, height = img.size
     return width + height
+
 
 def hide_file_in_png(image_path, file_to_hide, output_image_path, public_key_path):
     # Load the public key
