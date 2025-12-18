@@ -33,7 +33,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 def encrypt_data(data, public_key):
     # Generate a random session key
     session_key = os.urandom(32)  # 32 bytes for 256-bit key
-    
     # Derive a symmetric key from the session key
     salt = os.urandom(16)  # 16 bytes for 128-bit salt
     kdf = PBKDF2HMAC(
@@ -44,7 +43,6 @@ def encrypt_data(data, public_key):
         backend=default_backend()
     )
     key = kdf.derive(session_key)
-    
     # Encrypt the data with AES
     iv = os.urandom(16)  # 16 bytes for 128-bit IV
     cipher = Cipher(algorithms.AES(key), modes.CBC(iv), backend=default_backend())
@@ -52,7 +50,6 @@ def encrypt_data(data, public_key):
     padder = PKCS7(algorithms.AES.block_size).padder()
     padded_data = padder.update(data) + padder.finalize()
     encrypted_data = encryptor.update(padded_data) + encryptor.finalize()
-    
     # Encrypt the session key with RSA
     encrypted_session_key = public_key.encrypt(
         session_key,
@@ -62,7 +59,6 @@ def encrypt_data(data, public_key):
             label=None
         )
     )
-    
     return encrypted_session_key, salt, iv, encrypted_data
 
 def decrypt_data(encrypted_session_key, salt, iv, encrypted_data, private_key):
@@ -75,7 +71,6 @@ def decrypt_data(encrypted_session_key, salt, iv, encrypted_data, private_key):
             label=None
         )
     )
-    
     # Derive the symmetric key from the session key
     kdf = PBKDF2HMAC(
         algorithm=hashes.SHA256(),
@@ -85,14 +80,12 @@ def decrypt_data(encrypted_session_key, salt, iv, encrypted_data, private_key):
         backend=default_backend()
     )
     key = kdf.derive(session_key)
-    
     # Decrypt the data with AES
     cipher = Cipher(algorithms.AES(key), modes.CBC(iv), backend=default_backend())
     decryptor = cipher.decryptor()
     decrypted_padded_data = decryptor.update(encrypted_data) + decryptor.finalize()
     unpadder = PKCS7(algorithms.AES.block_size).unpadder()
     decrypted_data = unpadder.update(decrypted_padded_data) + unpadder.finalize()
-    
     return decrypted_data
 
 def compute_seed_from_image_dimensions(image_path):
@@ -129,8 +122,7 @@ def hide_file_in_png(image_path, file_to_hide, output_image_path, public_key_pat
         img = img.convert('RGBA')
 
     # This will give you the original format of the image
-    host_format = img.format  
-    
+    host_format = img.format
     # If the format is None, try to determine it from the file extension
     if host_format is None:
         file_extension = os.path.splitext(image_path)[1].lower()
@@ -146,19 +138,15 @@ def hide_file_in_png(image_path, file_to_hide, output_image_path, public_key_pat
     supported_formats = {'TGA', 'TIFF', 'BMP', 'PNG'}
     if host_format not in supported_formats:
         raise ValueError(f"Unsupported image format: {host_format}")
-        
     pixels = np.array(img)
-    
     # Read the file to hide
     with open(file_to_hide, 'rb') as f:
         file_bytes = f.read()
-    
     # Compress the file
     compressed_data = zlib.compress(file_bytes)
 
     # Encrypt the compressed data
     encrypted_session_key, salt, iv, encrypted_data = encrypt_data(compressed_data, public_key)
-    
     # Get the filename to store
     filename = os.path.basename(file_to_hide).encode()
     filename_size = len(filename)
@@ -166,7 +154,6 @@ def hide_file_in_png(image_path, file_to_hide, output_image_path, public_key_pat
     # Concatenate the encrypted session key, salt, iv, and encrypted data
     data_to_encode = (filename_size.to_bytes(4, 'big') + filename +
                       encrypted_session_key + salt + iv + encrypted_data)
-    
     # Calculate the number of pixels needed
     file_size = len(data_to_encode)
     num_pixels_required = file_size * 8  # 8 bits per byte
@@ -190,7 +177,6 @@ def hide_file_in_png(image_path, file_to_hide, output_image_path, public_key_pat
             idx = pixel_indices[64 + i * 8 + bit]
             if (pixels[idx // pixels.shape[1], idx % pixels.shape[1], 0] & 0x1) != ((byte >> (7 - bit)) & 0x1):
                 pixels[idx // pixels.shape[1], idx % pixels.shape[1], 0] ^= 0x1
-    
 
 
     # Check if the file already exists and prompt the user
@@ -199,7 +185,6 @@ def hide_file_in_png(image_path, file_to_hide, output_image_path, public_key_pat
         if overwrite != 'y':
             print("Extraction cancelled.")
             return
-    
     # Save the new image
     new_img = Image.fromarray(pixels, 'RGBA')
 
@@ -230,10 +215,8 @@ def extract_file_from_png(image_path, output_file_path, private_key_path):
             password=passphrase.encode(),
             backend=default_backend()
         )
-    
     # Determine the size of the encrypted session key based on the private key size
     encrypted_session_key_size = private_key.key_size // 8
-    
     # Use the sum of the image dimensions as the seed
     seed = compute_seed_from_image_dimensions(image_path)
     prng = random.Random(seed)  # Create a new instance of a random number generator
@@ -243,16 +226,12 @@ def extract_file_from_png(image_path, output_file_path, private_key_path):
     img = Image.open(image_path)
     if img.mode not in ['RGB', 'RGBA']:
         raise ValueError("Image must be in RGB or RGBA format.")
-    
     # Convert to RGBA if not already in that format
     if img.mode != 'RGBA':
         img = img.convert('RGBA')
-    
     pixels = np.array(img)
-    
     # Flatten the image array for easier processing
     flat_pixels = pixels.flatten()
-    
     # Use only the red channel for RGBA
     channel_multiplier = 4
 
@@ -260,13 +239,10 @@ def extract_file_from_png(image_path, output_file_path, private_key_path):
     file_size = 0
     for i in range(64):
         file_size = (file_size << 1) | (flat_pixels[i * channel_multiplier] & 0x1)
-    
     # Calculate the number of bytes that can be extracted
     num_bytes_to_extract = file_size
-    
     # Prepare a list to store the extracted bytes
     extracted_bytes = []
-    
 
     # Generate a list of unique indices to extract the data
     pixel_indices = list(range(pixels.size // 4))
@@ -289,27 +265,22 @@ def extract_file_from_png(image_path, output_file_path, private_key_path):
             idx = pixel_indices[64 + i * 8 + bit]
             byte = (byte << 1) | (pixels[idx // pixels.shape[1], idx % pixels.shape[1], 0] & 0x1)
         extracted_bytes.append(byte)
-    
     # Convert the extracted bytes to a byte array
     data_to_decode = bytes(extracted_bytes)
 
     # Extract the filename size and filename
     filename_size = int.from_bytes(data_to_decode[:4], 'big')
     filename = data_to_decode[4:4 + filename_size].decode()
-    
     # Extract the session key, salt, iv, and encrypted data
     offset = 4 + filename_size
     encrypted_session_key = data_to_decode[offset:offset + encrypted_session_key_size]
     salt = data_to_decode[offset + encrypted_session_key_size:offset + encrypted_session_key_size + 16]
     iv = data_to_decode[offset + encrypted_session_key_size + 16:offset + encrypted_session_key_size + 32]
     encrypted_data = data_to_decode[offset + encrypted_session_key_size + 32:]
-    
     # Decrypt the data
     decrypted_data = decrypt_data(encrypted_session_key, salt, iv, encrypted_data, private_key)
-    
     # Decompress the decrypted data
     decompressed_data = zlib.decompress(decrypted_data)
-    
     # If no output file path is provided, use the extracted filename
     if not output_file_path:
         output_file_path = os.path.join(os.getcwd(), filename)
@@ -320,7 +291,6 @@ def extract_file_from_png(image_path, output_file_path, private_key_path):
         if overwrite != 'y':
             print("Extraction cancelled.")
             return
-        
     # Write the decompressed data to the output file
     with open(output_file_path, 'wb') as f:
         f.write(decompressed_data)
