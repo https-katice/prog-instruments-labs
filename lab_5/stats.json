@@ -1,0 +1,12 @@
+{
+    "cpp": {
+        "frequency_bit_test": 0.07709987174354183,
+        "identical_consecutive_bit_test": 0.9188159666200114,
+        "longest_sequence_in_block": 0.9412835035311226
+    },
+    "java": {
+        "frequency_bit_test": 0.37675911781158217,
+        "identical_consecutive_bit_test": 0.520891578444262,
+        "longest_sequence_in_block": 0.4462188631421427
+    }
+}
