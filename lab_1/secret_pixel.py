@@ -46,7 +46,8 @@ def encrypt_data(data, public_key):
     key = kdf.derive(session_key)
     # Encrypt the data with AES
     iv = os.urandom(16)  # 16 bytes for 128-bit IV
-    cipher = Cipher(algorithms.AES(key), modes.CBC(iv), backend=default_backend())
+    cipher = Cipher(algorithms.AES(key), modes.CBC(iv),
+                    backend=default_backend())
     encryptor = cipher.encryptor()
     padder = PKCS7(algorithms.AES.block_size).padder()
     padded_data = padder.update(data) + padder.finalize()
@@ -83,11 +84,14 @@ def decrypt_data(encrypted_session_key, salt, iv, encrypted_data, private_key):
     )
     key = kdf.derive(session_key)
     # Decrypt the data with AES
-    cipher = Cipher(algorithms.AES(key), modes.CBC(iv), backend=default_backend())
+    cipher = Cipher(algorithms.AES(key), modes.CBC(iv),
+                    backend=default_backend())
     decryptor = cipher.decryptor()
-    decrypted_padded_data = decryptor.update(encrypted_data) + decryptor.finalize()
+    decrypted_padded_data = \
+        decryptor.update(encrypted_data) + decryptor.finalize()
     unpadder = PKCS7(algorithms.AES.block_size).unpadder()
-    decrypted_data = unpadder.update(decrypted_padded_data) + unpadder.finalize()
+    decrypted_data = \
+        unpadder.update(decrypted_padded_data) + unpadder.finalize()
     return decrypted_data
 
 
@@ -97,7 +101,8 @@ def compute_seed_from_image_dimensions(image_path):
     return width + height
 
 
-def hide_file_in_png(image_path, file_to_hide, output_image_path, public_key_path):
+def hide_file_in_png(image_path, file_to_hide,
+                     output_image_path, public_key_path):
     # Load the public key
     with open(public_key_path, 'rb') as key_file:
         public_key = serialization.load_pem_public_key(
@@ -107,13 +112,16 @@ def hide_file_in_png(image_path, file_to_hide, output_image_path, public_key_pat
 
     # Use the sum of the image dimensions as the seed
     seed = compute_seed_from_image_dimensions(image_path)
-    prng = random.Random(seed)  # Create a new instance of a random number generator
+    prng = random.Random(seed)
+    # Create a new instance of a random number generator
 
     # Read the original image
     img = Image.open(image_path)
     # Check if the image is in a mode that can be converted to RGB or RGBA
     if img.mode not in ['RGB', 'RGBA', 'P', 'L']:
-        raise ValueError("Image mode must be RGB, RGBA, P (palette-based), or L (grayscale).")
+        raise ValueError(
+            "Image mode must be RGB, RGBA, P (palette-based), "
+            "or L (grayscale).")
 
     # Convert to RGB if it's P or L mode (palette-based or grayscale)
     if img.mode == 'P' or img.mode == 'L':
@@ -148,7 +156,9 @@ def hide_file_in_png(image_path, file_to_hide, output_image_path, public_key_pat
     compressed_data = zlib.compress(file_bytes)
 
     # Encrypt the compressed data
-    encrypted_session_key, salt, iv, encrypted_data = encrypt_data(compressed_data, public_key)
+    encrypted_session_key, salt, iv, encrypted_data = encrypt_data(
+        compressed_data, public_key
+    )
     # Get the filename to store
     filename = os.path.basename(file_to_hide).encode()
     filename_size = len(filename)
@@ -170,18 +180,23 @@ def hide_file_in_png(image_path, file_to_hide, output_image_path, public_key_pat
     for i in range(64):
         idx = pixel_indices[i]
         bit = (file_size >> (63 - i)) & 0x1
-        if (pixels[idx // pixels.shape[1], idx % pixels.shape[1], 0] & 0x1) != bit:
+        pixel_val = pixels[idx // pixels.shape[1], idx % pixels.shape[1], 0]
+        if (pixel_val & 0x1) != bit:
             pixels[idx // pixels.shape[1], idx % pixels.shape[1], 0] ^= 0x1
 
     # Embed each bit of the data to encode in the image using LSB matching
     for i, byte in enumerate(data_to_encode):
         for bit in range(8):
             idx = pixel_indices[64 + i * 8 + bit]
-            if (pixels[idx // pixels.shape[1], idx % pixels.shape[1], 0] & 0x1) != ((byte >> (7 - bit)) & 0x1):
+            pixel_val = pixels[idx // pixels.shape[1],
+                               idx % pixels.shape[1], 0]
+            expected_bit = (byte >> (7 - bit)) & 0x1
+            if (pixel_val & 0x1) != expected_bit:
                 pixels[idx // pixels.shape[1], idx % pixels.shape[1], 0] ^= 0x1
     # Check if the file already exists and prompt the user
     if os.path.exists(output_image_path):
-        overwrite = input(f"The file '{output_image_path}' already exists. Overwrite? (y/n): ").lower()
+        overwrite = input(f"The file '{output_image_path}' "
+                          f"already exists. Overwrite? (y/n): ").lower()
         if overwrite != 'y':
             print("Extraction cancelled.")
             return
@@ -197,10 +212,14 @@ def hide_file_in_png(image_path, file_to_hide, output_image_path, public_key_pat
     elif host_format == 'TIFF':
         new_img.save(output_image_path, format='TIFF', optimize=True)
     else:
-        # If the format is not one of the supported/expected formats, raise an error.
+        # If the format is not one of the supported/expected formats,
+        # raise an error.
         raise ValueError(f"Unsupported image format: {host_format}")
 
-    print(f"File '{file_to_hide}' has been successfully hidden in '{output_image_path}'.")
+    print(
+        f"File '{file_to_hide}' has been successfully "
+        f"hidden in '{output_image_path}'."
+    )
 
 
 def extract_file_from_png(image_path, output_file_path, private_key_path):
@@ -212,11 +231,13 @@ def extract_file_from_png(image_path, output_file_path, private_key_path):
             password=passphrase.encode(),
             backend=default_backend()
         )
-    # Determine the size of the encrypted session key based on the private key size
+    # Determine the size of the encrypted session
+    # key based on the private key size
     encrypted_session_key_size = private_key.key_size // 8
     # Use the sum of the image dimensions as the seed
     seed = compute_seed_from_image_dimensions(image_path)
-    prng = random.Random(seed)  # Create a new instance of a random number generator
+    prng = random.Random(seed)
+    # Create a new instance of a random number generator
     # Read the steganographed image
     img = Image.open(image_path)
     if img.mode not in ['RGB', 'RGBA']:
@@ -233,7 +254,8 @@ def extract_file_from_png(image_path, output_file_path, private_key_path):
     # Extract the file size from the first 64 pixels
     file_size = 0
     for i in range(64):
-        file_size = (file_size << 1) | (flat_pixels[i * channel_multiplier] & 0x1)
+        pixel_bit = flat_pixels[i * channel_multiplier] & 0x1
+        file_size = (file_size << 1) | pixel_bit
     # Calculate the number of bytes that can be extracted
     num_bytes_to_extract = file_size
     # Prepare a list to store the extracted bytes
@@ -247,7 +269,8 @@ def extract_file_from_png(image_path, output_file_path, private_key_path):
     file_size = 0
     for i in range(64):
         idx = pixel_indices[i]
-        file_size = (file_size << 1) | (pixels[idx // pixels.shape[1], idx % pixels.shape[1], 0] & 0x1)
+        file_size = (file_size << 1) | (pixels[idx // pixels.shape[1],
+                                               idx % pixels.shape[1], 0] & 0x1)
 
     # Calculate the number of bytes that can be extracted
     num_bytes_to_extract = file_size
@@ -258,7 +281,8 @@ def extract_file_from_png(image_path, output_file_path, private_key_path):
         byte = 0
         for bit in range(8):
             idx = pixel_indices[64 + i * 8 + bit]
-            byte = (byte << 1) | (pixels[idx // pixels.shape[1], idx % pixels.shape[1], 0] & 0x1)
+            byte = (byte << 1) | (pixels[idx // pixels.shape[1],
+                                         idx % pixels.shape[1], 0] & 0x1)
         extracted_bytes.append(byte)
     # Convert the extracted bytes to a byte array
     data_to_decode = bytes(extracted_bytes)
@@ -268,12 +292,22 @@ def extract_file_from_png(image_path, output_file_path, private_key_path):
     filename = data_to_decode[4:4 + filename_size].decode()
     # Extract the session key, salt, iv, and encrypted data
     offset = 4 + filename_size
-    encrypted_session_key = data_to_decode[offset:offset + encrypted_session_key_size]
-    salt = data_to_decode[offset + encrypted_session_key_size:offset + encrypted_session_key_size + 16]
-    iv = data_to_decode[offset + encrypted_session_key_size + 16:offset + encrypted_session_key_size + 32]
+    key_end = offset + encrypted_session_key_size
+    encrypted_session_key = data_to_decode[offset:key_end]
+
+    salt_start = offset + encrypted_session_key_size
+    salt_end = salt_start + 16
+    salt = data_to_decode[salt_start:salt_end]
+
+    iv_start = offset + encrypted_session_key_size + 16
+    iv_end = iv_start + 16
+    iv = data_to_decode[iv_start:iv_end]
     encrypted_data = data_to_decode[offset + encrypted_session_key_size + 32:]
     # Decrypt the data
-    decrypted_data = decrypt_data(encrypted_session_key, salt, iv, encrypted_data, private_key)
+    decrypted_data = decrypt_data(
+        encrypted_session_key,
+        salt, iv, encrypted_data,
+        private_key)
     # Decompress the decrypted data
     decompressed_data = zlib.decompress(decrypted_data)
     # If no output file path is provided, use the extracted filename
@@ -282,7 +316,10 @@ def extract_file_from_png(image_path, output_file_path, private_key_path):
 
     # Check if the file already exists and prompt the user
     if os.path.exists(output_file_path):
-        overwrite = input(f"The file '{output_file_path}' already exists. Overwrite? (y/n): ").lower()
+        overwrite = input(
+            f"The file '{output_file_path}' already exists. "
+            f"Overwrite? (y/n): "
+        ).lower()
         if overwrite != 'y':
             print("Extraction cancelled.")
             return
@@ -294,25 +331,55 @@ def extract_file_from_png(image_path, output_file_path, private_key_path):
 
 
 def main():
-    parser = argparse.ArgumentParser(description='SecretPixel - Advanced Steganography Tool', epilog="Example commands:\n"
-                                            "  Hide: python secret_pixel.py hide host.png secret.txt mypublickey.pem output.png\n"
-                                            "  Extract: python secret_pixel.py extract carrier.png myprivatekey.pem [extracted.txt]",
-                                     formatter_class=argparse.RawDescriptionHelpFormatter)
+    parser = argparse.ArgumentParser(
+        description='SecretPixel - Advanced Steganography Tool',
+        epilog="Example commands:\n"
+                "  Hide: python secret_pixel.py hide host.png secret.txt "
+               "mypublickey.pem output.png\n"
+                "  Extract: python secret_pixel.py extract carrier.png "
+               "myprivatekey.pem [extracted.txt]",
+        formatter_class=argparse.RawDescriptionHelpFormatter
+    )
     subparsers = parser.add_subparsers(dest='command')
 
     # Subparser for hiding a file
-    hide_parser = subparsers.add_parser('hide', help='Hide a file inside an image', epilog="Example: python secret_pixel.py hide host.png secret.txt mypublickey.pem output.png", formatter_class=argparse.RawDescriptionHelpFormatter)
+    hide_parser = subparsers.add_parser(
+        'hide', help='Hide a file inside an image',
+        epilog="Example: python secret_pixel.py hide host.png secret.txt "
+               "mypublickey.pem output.png",
+        formatter_class=argparse.RawDescriptionHelpFormatter
+    )
     hide_parser.add_argument('host', type=str, help='Path to the host image')
-    hide_parser.add_argument('secret', type=str, help='Path to the secret file to hide')
-    hide_parser.add_argument('pubkey', type=str, help='Path to the public key for encryption')
-    hide_parser.add_argument('output', type=str, help='Path to the output image with embedded data')
+    hide_parser.add_argument(
+        'secret', type=str, help='Path to the secret file to hide'
+    )
+    hide_parser.add_argument(
+        'pubkey', type=str, help='Path to the public key for encryption'
+    )
+    hide_parser.add_argument(
+        'output', type=str, help='Path to the output image with embedded data'
+    )
     # Subparser for extracting a file
-    extract_parser = subparsers.add_parser('extract', help='Extract a file from an image', epilog="Example: python secret_pixel.py extract carrier.png  myprivatekey.pem [extracted.txt]",
-                                           formatter_class=argparse.RawDescriptionHelpFormatter)
-    extract_parser.add_argument('carrier', type=str, help='Path to the image with embedded data')
-    extract_parser.add_argument('privkey', type=str, help='Path to the private key for decryption')
+    extract_parser = subparsers.add_parser(
+        'extract', help='Extract a file from an image',
+        epilog="Example: python secret_pixel.py extract carrier.png  "
+               "myprivatekey.pem [extracted.txt]",
+        formatter_class=argparse.RawDescriptionHelpFormatter
+    )
+    extract_parser.add_argument(
+        'carrier', type=str,
+        help='Path to the image with embedded data'
+    )
+    extract_parser.add_argument(
+        'privkey', type=str,
+        help='Path to the private key for decryption'
+    )
 
-    extract_parser.add_argument('extracted', nargs='?', type=str, default=None, help='Path to save the extracted secret file (optional, defaults to the original filename)')
+    extract_parser.add_argument(
+        'extracted', nargs='?', type=str, default=None,
+        help='Path to save the extracted secret file '
+             '(optional, defaults to the original filename)'
+    )
     if len(sys.argv) == 1:
         parser.print_help(sys.stderr)
         sys.exit(1)
@@ -322,7 +389,8 @@ def main():
     if args.command == 'hide':
         hide_file_in_png(args.host, args.secret, args.output, args.pubkey)
     elif args.command == 'extract':
-        # If no output file path is provided, use None to trigger default behavior
+        # If no output file path is provided,
+        # use None to trigger default behavior
         output_file_path = args.extracted if args.extracted else None
         extract_file_from_png(args.carrier, output_file_path, args.privkey)
     else:
