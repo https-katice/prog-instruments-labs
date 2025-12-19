@@ -334,9 +334,9 @@ def main():
     parser = argparse.ArgumentParser(
         description='SecretPixel - Advanced Steganography Tool',
         epilog="Example commands:\n"
-                "  Hide: python secret_pixel.py hide host.png secret.txt "
+               "  Hide: python secret_pixel.py hide host.png secret.txt "
                "mypublickey.pem output.png\n"
-                "  Extract: python secret_pixel.py extract carrier.png "
+               "  Extract: python secret_pixel.py extract carrier.png "
                "myprivatekey.pem [extracted.txt]",
         formatter_class=argparse.RawDescriptionHelpFormatter
     )
